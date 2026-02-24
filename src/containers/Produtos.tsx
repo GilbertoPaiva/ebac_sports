@@ -1,43 +1,30 @@
-import { Produto as ProdutoType } from '../App'
 import Produto from '../components/Produto'
+import { useAppSelector } from '../store/hooks'
+import { useGetProdutosQuery } from '../store/services/produtosApi'
 
 import * as S from './styles'
 
-type Props = {
-  produtos: ProdutoType[]
-  favoritos: ProdutoType[]
-  adicionarAoCarrinho: (produto: ProdutoType) => void
-  favoritar: (produto: ProdutoType) => void
-}
+const Produtos = () => {
+  const { data: produtos = [], isLoading, isError } = useGetProdutosQuery()
+  const favoritos = useAppSelector((state) => state.carrinho.favoritos)
 
-const ProdutosComponent = ({
-  produtos,
-  favoritos,
-  adicionarAoCarrinho,
-  favoritar
-}: Props) => {
-  const produtoEstaNosFavoritos = (produto: ProdutoType) => {
-    const produtoId = produto.id
-    const IdsDosFavoritos = favoritos.map((f) => f.id)
+  const produtoEstaNosFavoritos = (produtoId: number) =>
+    favoritos.some((f) => f.id === produtoId)
 
-    return IdsDosFavoritos.includes(produtoId)
-  }
+  if (isLoading) return <p>Carregando produtos...</p>
+  if (isError) return <p>Erro ao carregar produtos.</p>
 
   return (
-    <>
-      <S.Produtos>
-        {produtos.map((produto) => (
-          <Produto
-            estaNosFavoritos={produtoEstaNosFavoritos(produto)}
-            key={produto.id}
-            produto={produto}
-            favoritar={favoritar}
-            aoComprar={adicionarAoCarrinho}
-          />
-        ))}
-      </S.Produtos>
-    </>
+    <S.Produtos>
+      {produtos.map((produto) => (
+        <Produto
+          estaNosFavoritos={produtoEstaNosFavoritos(produto.id)}
+          key={produto.id}
+          produto={produto}
+        />
+      ))}
+    </S.Produtos>
   )
 }
 
-export default ProdutosComponent
+export default Produtos
